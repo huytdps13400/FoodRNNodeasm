@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   Dimensions,
   Image,
@@ -18,19 +18,33 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import COLORS from '../../consts/colors';
 import categories from '../../consts/categories';
 import foods from '../../consts/foods';
+import {useSelector, useDispatch} from 'react-redux';
+import actions from '../../redux/actions';
+import {convertCurrency} from '../utils/helper';
 const {width} = Dimensions.get('screen');
 const cardWidth = width / 2 - 20;
 
 const HomeScreen = ({navigation}) => {
   const [selectedCategoryIndex, setSelectedCategoryIndex] = React.useState(0);
+  const dispatch = useDispatch();
+  const dataproduct = useSelector((state) => state?.product.data);
+  const datacategory = useSelector((state) => state?.category.data);
 
+  useEffect(() => {
+    dispatch({
+      type: actions.GET_PRODUCT,
+    });
+    dispatch({
+      type: actions.GET_CATEGORY,
+    });
+  }, [dispatch]);
   const ListCategories = () => {
     return (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={style.categoriesListContainer}>
-        {categories.map((category, index) => (
+        {datacategory.map((category, index) => (
           <TouchableOpacity
             key={index}
             activeOpacity={0.8}
@@ -45,8 +59,10 @@ const HomeScreen = ({navigation}) => {
               }}>
               <View style={style.categoryBtnImgCon}>
                 <Image
-                  source={category.image}
-                  style={{height: 35, width: 35, resizeMode: 'cover'}}
+                  source={{
+                    uri: 'http://10.0.2.2:3010/images/' + category.image,
+                  }}
+                  style={{height: 35, width: '100%', resizeMode: 'contain'}}
                 />
               </View>
               <Text
@@ -75,12 +91,21 @@ const HomeScreen = ({navigation}) => {
         onPress={() => navigation.navigate('DetailsScreen', food)}>
         <View style={style.card}>
           <View style={{alignItems: 'center', top: -40}}>
-            <Image source={food.image} style={{height: 120, width: 120}} />
+            <Image
+              source={{uri: 'http://10.0.2.2:3010/images/' + food.image}}
+              style={{height: 120, width: 120}}
+              resizeMode="contain"
+            />
           </View>
           <View style={{marginHorizontal: 20}}>
-            <Text style={{fontSize: 18, fontWeight: 'bold'}}>{food.name}</Text>
-            <Text style={{fontSize: 14, color: COLORS.grey, marginTop: 2}}>
-              {food.ingredients}
+            <Text numberOfLines={1} style={{fontSize: 18, fontWeight: 'bold'}}>
+              {food.name}
+            </Text>
+            <Text
+              ellipsizeMode="middle"
+              numberOfLines={1}
+              style={{fontSize: 14, color: COLORS.grey, marginTop: 2}}>
+              {food._idCategory.name}
             </Text>
           </View>
           <View
@@ -91,7 +116,7 @@ const HomeScreen = ({navigation}) => {
               justifyContent: 'space-between',
             }}>
             <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-              ${food.price}
+              ${convertCurrency(food.price)}
             </Text>
             <View style={style.addToCartBtn}>
               <Icon name="add" size={20} color={COLORS.white} />
@@ -143,7 +168,8 @@ const HomeScreen = ({navigation}) => {
       <FlatList
         showsVerticalScrollIndicator={false}
         numColumns={2}
-        data={foods}
+        data={dataproduct}
+        keyExtractor={(item) => item._id}
         renderItem={({item}) => <Card food={item} />}
       />
     </SafeAreaView>
@@ -201,10 +227,10 @@ const style = StyleSheet.create({
     height: 220,
     width: cardWidth,
     marginHorizontal: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     marginTop: 50,
     borderRadius: 15,
-    elevation: 13,
+    elevation: 5,
     backgroundColor: COLORS.white,
   },
   addToCartBtn: {

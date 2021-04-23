@@ -54,7 +54,7 @@ const BottomNavigator = () => {
                 borderColor: COLORS.primary,
                 borderWidth: 2,
                 borderRadius: 30,
-                top: -25,
+                bottom: 25,
                 elevation: 5,
               }}>
               <Icon name="search" color={COLORS.primary} size={28} />

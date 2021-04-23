@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import {SafeAreaView, StyleSheet, View, Text, Image} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -7,7 +8,31 @@ import {SecondaryButton} from '../components/Button';
 
 const DetailsScreen = ({navigation, route}) => {
   const item = route.params;
+  const AddtoCart = (data) => {
+    const itemcart = {
+      food: data,
+      quantity: 1,
+      price: data.price,
+    };
+    AsyncStorage.getItem('cart')
+      .then((datacart) => {
+        if (datacart !== null) {
+          const Cart = JSON.parse(datacart);
 
+          Cart.push(itemcart);
+          AsyncStorage.setItem('cart', JSON.stringify(Cart));
+          navigation.navigate('Cart');
+        } else {
+          const Cart = [];
+          Cart.push(itemcart);
+          AsyncStorage.setItem('cart', JSON.stringify(Cart));
+          navigation.navigate('Cart');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
   return (
     <SafeAreaView style={{backgroundColor: COLORS.white}}>
       <View style={style.header}>
@@ -21,7 +46,11 @@ const DetailsScreen = ({navigation, route}) => {
             alignItems: 'center',
             height: 280,
           }}>
-          <Image source={item.image} style={{height: 220, width: 220}} />
+          <Image
+            source={{uri: 'http://10.0.2.2:3010/images/' + item.image}}
+            style={{height: 220, width: 220}}
+            resizeMode="contain"
+          />
         </View>
         <View style={style.details}>
           <View
@@ -31,22 +60,25 @@ const DetailsScreen = ({navigation, route}) => {
               alignItems: 'center',
             }}>
             <Text
-              style={{fontSize: 25, fontWeight: 'bold', color: COLORS.white}}>
+              numberOfLines={2}
+              style={{
+                fontSize: 25,
+                fontWeight: 'bold',
+                color: COLORS.white,
+                width: 300,
+              }}>
               {item.name}
             </Text>
             <View style={style.iconContainer}>
               <Icon name="favorite-border" color={COLORS.primary} size={25} />
             </View>
           </View>
-          <Text style={style.detailsText}>
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry's standard dummy text
-            ever since the 1500s, when an unknown printer took a galley of type
-            and scrambled it to make a type specimen book. It has survived not
-            only five centuries.
-          </Text>
+          <Text style={style.detailsText}>{item.mota}</Text>
           <View style={{marginTop: 40, marginBottom: 40}}>
-            <SecondaryButton title="Add To Cart" />
+            <SecondaryButton
+              title="Add To Cart"
+              onPress={() => AddtoCart(item)}
+            />
           </View>
         </View>
       </ScrollView>
@@ -81,6 +113,7 @@ const style = StyleSheet.create({
     marginTop: 10,
     lineHeight: 22,
     fontSize: 16,
+
     color: COLORS.white,
   },
 });
